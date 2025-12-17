@@ -3,13 +3,13 @@ package com.tlu.thuvien.application.service;
 import com.tlu.thuvien.domain.entity.*;
 import com.tlu.thuvien.infrastructure.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cglib.core.Local;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +20,7 @@ public class BorrowService {
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
 
+    //Tao yeu cau muon sach
     @Transactional
     public Long createBorrowRequest() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -64,12 +65,21 @@ public class BorrowService {
         return savedTrans.getId();
     }
 
+    //Lay trang thai theo Id
     public BorrowTransaction getPendingTransactionByUserId(Long userId) {
         return transactionRepository.findByUserIdAndStatus(userId, BorrowStatus.PENDING)
                 .stream().findFirst()
                 .orElseThrow(() -> new RuntimeException("User này không có yêu cầu mượn nào!"));
     }
 
+    //Tim phieu co trang thai Borrowed
+    public BorrowTransaction getBorrowedTransactionByUserId(Long userId) {
+        return transactionRepository.findByUserIdAndStatus(userId, BorrowStatus.BORROWED)
+                .stream().findFirst()
+                .orElseThrow(() -> new RuntimeException("Người dùng này không có sách nào đang mượn!"));
+    }
+
+    //Duyet muon sach
     @Transactional
     public void approveBorrow(Long transactionId) {
         BorrowTransaction transaction = transactionRepository.findById(transactionId)
@@ -77,5 +87,44 @@ public class BorrowService {
 
         transaction.setStatus(BorrowStatus.BORROWED);
         transactionRepository.save(transaction);
+    }
+
+    //Tra sach
+    @Transactional
+    public String processReturn(Long transactionId) {
+        BorrowTransaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu mượn"));
+
+        if (transaction.getStatus().equals(BorrowStatus.PENDING.name())) {
+            throw new RuntimeException("Phiếu mượn chưa được duyệt, không thể trả!");
+        }
+
+        if (!transaction.getStatus().equals(BorrowStatus.BORROWED.name())) {
+            return "Phiếu mượn đã được trả hoặc bị hủy.";
+        }
+
+        LocalDate currentDate = LocalDate.now();
+        boolean isOverdue = false;
+
+        for (BorrowDetail detail : transaction.getDetails()) {
+            detail.setReturnedDate(currentDate);
+
+            Book book = detail.getBook();
+            book.setAvailableQuantity(book.getAvailableQuantity() + 1);
+            bookRepository.save(book);
+
+            if (currentDate.isAfter(transaction.getDueDate())) {
+                isOverdue = true;
+            }
+        }
+
+        transaction.setStatus(BorrowStatus.valueOf(BorrowStatus.RETURNED.name()));
+        transactionRepository.save(transaction);
+
+        if (isOverdue) {
+            return "Trả sách thành công, nhưng bị trễ hạn (" + transaction.getDueDate() + "). Cần kiểm tra phí phạt!";
+        }
+
+        return "Trả sách thành công!";
     }
 }

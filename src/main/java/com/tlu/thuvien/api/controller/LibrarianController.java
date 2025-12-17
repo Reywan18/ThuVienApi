@@ -25,14 +25,26 @@ public class LibrarianController {
 
     @PreAuthorize("hasAuthority('ROLE_LIBRARIAN') or hasAuthority('ROLE_ADMIN')")
     @PostMapping("/scan")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> scanQrCode(@RequestBody ScanQrRequest request) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> scanQrCode(
+            @RequestBody ScanQrRequest request,
+            @RequestParam(defaultValue = "borrow") String type
+    ) {
         String rawQrData = request.getQrContent();
-
         Long userId = qrAdapter.parseUserId(rawQrData);
 
-        BorrowTransaction transaction = borrowService.getPendingTransactionByUserId(userId);
+        BorrowTransaction transaction;
+        String message;
+
+        if ("return".equalsIgnoreCase(type)) {
+            transaction = borrowService.getBorrowedTransactionByUserId(userId);
+            message = "Quét thành công! Tìm thấy sách đang mượn.";
+        } else {
+            transaction = borrowService.getPendingTransactionByUserId(userId);
+            message = "Quét thành công! Tìm thấy yêu cầu mượn mới.";
+        }
 
         Map<String, Object> result = new HashMap<>();
+        result.put("action", type.toUpperCase());
         result.put("userName", transaction.getUser().getName());
         result.put("userEmail", transaction.getUser().getEmail());
         result.put("transactionId", transaction.getId());
@@ -44,7 +56,7 @@ public class LibrarianController {
 
         return ResponseEntity.ok(new ApiResponse<>(
                 HttpStatus.OK.value(),
-                "Quét thành công! Tìm thấy yêu cầu mượn.",
+                message,
                 result
         ));
     }
@@ -56,6 +68,18 @@ public class LibrarianController {
         return ResponseEntity.ok(new ApiResponse<>(
                 HttpStatus.OK.value(),
                 "Đã duyệt phiếu mượn thành công!",
+                null
+        ));
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_LIBRARIAN')")
+    @PostMapping("/return/{transactionId}")
+    public ResponseEntity<ApiResponse<String>> processReturn(@PathVariable Long transactionId) {
+        String message = borrowService.processReturn(transactionId);
+
+        return ResponseEntity.ok(new ApiResponse<>(
+                HttpStatus.OK.value(),
+                message,
                 null
         ));
     }
