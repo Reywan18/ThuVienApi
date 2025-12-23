@@ -8,7 +8,6 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,4 +22,8 @@ public class Book {
 
     @Column(name = "available_quantity")
     private Integer availableQuantity;
+
+    @Lob
+    @Column(name = "image", columnDefinition = "LONGTEXT")
+    private String image;
 }

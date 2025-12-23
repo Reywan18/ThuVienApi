@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<ul th:fragment="sidebar" class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/admin/dashboard">
+        <div class="sidebar-brand-text mx-3">Library Admin</div>
+    </a>
+    <hr class="sidebar-divider my-0">
+
+    <li class="nav-item">
+        <a class="nav-link" th:href="@{/admin/dashboard}">
+            <i class="fas fa-fw fa-tachometer-alt"></i> <span>Dashboard</span>
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseBooks">
+            <i class="fas fa-fw fa-book"></i> <span>Quản lý Sách</span>
+        </a>
+        <div id="collapseBooks" class="collapse" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <a class="collapse-item" th:href="@{/admin/books}">Danh sách</a>
+                <a class="collapse-item" th:href="@{/admin/books/create}">Thêm mới</a>
+            </div>
+        </div>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link" th:href="@{/admin/users}">
+            <i class="fas fa-fw fa-users"></i> <span>Người dùng</span>
+        </a>
+    </li>
+</ul>
+</body>
+</html>

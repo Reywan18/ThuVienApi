@@ -34,13 +34,22 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        //Cho phép truy cập file tĩnh (CSS, JS, Ảnh)
+                        .requestMatchers("/css/**", "/js/**", "/img/**", "/vendor/**").permitAll()
+                        //Phân quyền các API hiện có
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
+                        //Cấu hình trang ADMIN
+                        .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .formLogin(form -> form
+                        .loginPage("/login")  // URL dẫn đến trang login
+                        .loginProcessingUrl("/login-perform") // URL xử lý submit form
+                        .defaultSuccessUrl("/admin/dashboard", true)
+                        .failureUrl("/login?error=true") // Quay lại /login nếu lỗi
+                        .permitAll()
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Danh sách Sách</title>
+  <link th:href="@{/vendor/fontawesome-free/css/all.min.css}" rel="stylesheet" type="text/css">
+  <link th:href="@{/css/sb-admin-2.min.css}" rel="stylesheet">
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <div th:replace="~{admin/sidebar :: sidebar}"></div>
+
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow"></nav>
+
+      <div class="container-fluid">
+        <h1 class="h3 mb-2 text-gray-800">Quản lý Sách</h1>
+        <div class="card shadow mb-4">
+          <div class="card-header py-3 d-flex justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Danh sách Sách</h6>
+            <form th:action="@{/admin/books}" method="get"
+                  class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+              <div class="input-group">
+                <input type="text" name="keyword" th:value="${keyword}"
+                       class="form-control bg-light border-0 small"
+                       placeholder="Tìm tên sách, tác giả..." aria-label="Search" aria-describedby="basic-addon2">
+                <div class="input-group-append">
+                  <button class="btn btn-primary" type="submit">
+                    <i class="fas fa-search fa-sm"></i>
+                  </button>
+                </div>
+              </div>
+            </form>
+            <a th:href="@{/admin/books/create}" class="btn btn-primary btn-sm">
+              <i class="fas fa-plus"></i> Thêm mới
+            </a>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-bordered" width="100%" cellspacing="0">
+                <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Ảnh bìa</th> <th>Tên sách</th>
+                  <th>Tác giả</th>
+                  <th>SL Còn</th>
+                  <th>Hành động</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="book : ${books}">
+                  <td th:text="${book.id}"></td>
+                  <td class="text-center">
+                    <img th:if="${book.image != null}"
+                         th:src="@{'data:image/jpeg;base64,' + ${book.image}}"
+                         style="width: 60px; height: 80px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px;">
+
+                    <span th:if="${book.image == null}" class="text-muted small">No Image</span>
+                  </td>
+                  <td th:text="${book.title}"></td>
+                  <td th:text="${book.author}"></td>
+                  <td th:text="${book.availableQuantity}"></td>
+                  <td>
+                    <a th:href="@{/admin/books/edit/{id}(id=${book.id})}" class="btn btn-warning btn-sm">Sửa</a>
+                    <a href="#" class="btn btn-danger btn-sm">Xóa</a>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script th:src="@{/vendor/jquery/jquery.min.js}"></script>
+<script th:src="@{/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/js/sb-admin-2.min.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script th:inline="javascript">
+  var successMsg = /*[[${success}]]*/ null;
+  var errorMsg = /*[[${error}]]*/ null;
+
+  if (successMsg) {
+      Swal.fire({
+          icon: 'success',
+          title: 'Thành công!',
+          text: successMsg,
+          confirmButtonColor: '#4e73df'
+      });
+  }
+
+  if (errorMsg) {
+      Swal.fire({
+          icon: 'error',
+          title: 'Lỗi!',
+          text: errorMsg,
+          confirmButtonColor: '#e74a3b'
+      });
+  }
+</script>
+</body>
+</html>

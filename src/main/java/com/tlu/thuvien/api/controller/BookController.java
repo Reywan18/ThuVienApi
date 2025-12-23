@@ -1,6 +1,6 @@
 package com.tlu.thuvien.api.controller;
 
-import com.tlu.thuvien.api.dto.request.book.BookRequest;
+import com.tlu.thuvien.api.dto.request.books.BookRequest;
 import com.tlu.thuvien.api.dto.response.api.ApiResponse;
 import com.tlu.thuvien.api.dto.response.book.BookResponse;
 import com.tlu.thuvien.application.service.BookService;
@@ -41,8 +41,8 @@ public class BookController {
     }
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    @PostMapping
-    public ResponseEntity<ApiResponse<BookResponse>> createBook(@Valid @RequestBody BookRequest request) {
+    @PostMapping(consumes = { "multipart/form-data" })
+    public ResponseEntity<ApiResponse<BookResponse>> createBook(@Valid @ModelAttribute BookRequest request) {
         return ResponseEntity.ok(new ApiResponse<>(
                 HttpStatus.CREATED.value(),
                 "Thêm sách mới thành công",

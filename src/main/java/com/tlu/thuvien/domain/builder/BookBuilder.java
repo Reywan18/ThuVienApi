@@ -9,6 +9,7 @@ public class BookBuilder {
     private String category;
     private Integer totalQuantity;
     private Integer availableQuantity;
+    private String image;
 
     public BookBuilder() {
     }
@@ -43,7 +44,12 @@ public class BookBuilder {
         return this;
     }
 
+    public BookBuilder image(String image) {
+        this.image = image;
+        return this;
+    }
+
     public Book build() {
-        return new Book(id, title, author, category, totalQuantity, availableQuantity);
+        return new Book(id, title, author, category, totalQuantity, availableQuantity, image);
     }
 }
