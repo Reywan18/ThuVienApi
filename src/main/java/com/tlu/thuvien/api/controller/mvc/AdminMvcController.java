@@ -23,12 +23,6 @@ public class AdminMvcController {
     private final UserService userService;
     private final BookService bookService;
 
-    //Trang Dashboard
-    @GetMapping("/dashboard")
-    public String dashboard(Model model) {
-        return "admin/dashboard"; // Trỏ đến file templates/admin/dashboard.html
-    }
-
     // Trang Quản lý User
     @GetMapping("/users")
     public String userList(Model model,
