@@ -50,7 +50,7 @@ public class UserController {
         return ResponseEntity.ok(new ApiResponse<>(
                 HttpStatus.OK.value(),
                 "Lấy danh sách người dùng thành công",
-                userService.getAllUsers()
+                userService.getAllUsers(null, null)
         ));
     }
 

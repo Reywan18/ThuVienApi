@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Quản lý Người dùng</title>
+  <link th:href="@{/vendor/fontawesome-free/css/all.min.css}" rel="stylesheet" type="text/css">
+  <link th:href="@{/css/sb-admin-2.min.css}" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body id="page-top">
+<div id="wrapper">
+  <div th:replace="~{admin/sidebar :: sidebar}"></div>
+
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow"></nav>
+
+      <div class="container-fluid">
+        <h1 class="h3 mb-2 text-gray-800">Quản lý Người dùng</h1>
+        <div class="card shadow mb-4">
+          <div class="card-header py-3 d-flex justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Danh sách User</h6>
+            <form th:action="@{/admin/users}" method="get"
+                  class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+              <div class="input-group">
+
+                <input type="text" name="keyword" th:value="${keyword}"
+                       class="form-control bg-light border-0 small mr-2"
+                       placeholder="Tìm tên, email..." aria-label="Search">
+
+                <select name="role" class="form-control bg-light border-0 small mr-2">
+                  <option value="">-- Tất cả vai trò --</option>
+                  <option value="USER" th:selected="${selectedRole != null && selectedRole.name() == 'USER'}">USER</option>
+                  <option value="LIBRARIAN" th:selected="${selectedRole != null && selectedRole.name() == 'LIBRARIAN'}">LIBRARIAN</option>
+                  <option value="ADMIN" th:selected="${selectedRole != null && selectedRole.name() == 'ADMIN'}">ADMIN</option>
+                </select>
+
+                <div class="input-group-append">
+                  <button class="btn btn-primary" type="submit">
+                    <i class="fas fa-search fa-sm"></i> Lọc
+                  </button>
+                </div>
+
+                <div class="input-group-append ml-1" th:if="${keyword != null || selectedRole != null}">
+                  <a th:href="@{/admin/users}" class="btn btn-secondary" title="Xóa lọc">
+                    <i class="fas fa-times fa-sm"></i>
+                  </a>
+                </div>
+              </div>
+            </form>
+            <a th:href="@{/admin/users/create}" class="btn btn-primary btn-sm">Thêm mới</a>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-bordered" width="100%" cellspacing="0">
+                <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Họ tên</th>
+                  <th>Email</th>
+                  <th>Vai trò</th>
+                  <th>Hành động</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="user : ${users}">
+                  <td th:text="${user.id}"></td>
+                  <td th:text="${user.name}"></td>
+                  <td th:text="${user.email}"></td>
+
+                  <td>
+                    <span th:if="${user.role.name() == 'ADMIN'}" class="badge badge-danger">ADMIN</span>
+                    <span th:if="${user.role.name() == 'LIBRARIAN'}" class="badge badge-info">LIBRARIAN</span>
+                    <span th:if="${user.role.name() == 'USER'}" class="badge badge-primary">USER</span>
+                  </td>
+
+                  <td>
+                    <a th:href="@{/admin/users/edit/{id}(id=${user.id})}" class="btn btn-warning btn-sm">Sửa</a>
+                    <a th:href="@{/admin/users/delete/{id}(id=${user.id})}" class="btn btn-danger btn-sm"
+                       onclick="return confirm('Bạn có chắc muốn xóa user này?');">Xóa</a>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script th:src="@{/vendor/jquery/jquery.min.js}"></script>
+<script th:src="@{/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/vendor/jquery-easing/jquery.easing.min.js}"></script>
+<script th:src="@{/js/sb-admin-2.min.js}"></script>
+<script th:inline="javascript">
+  var successMsg = /*[[${success}]]*/ null;
+  var errorMsg = /*[[${error}]]*/ null;
+  if (successMsg) Swal.fire('Thành công!', successMsg, 'success');
+  if (errorMsg) Swal.fire('Lỗi!', errorMsg, 'error');
+</script>
+</body>
+</html>

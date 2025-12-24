@@ -4,12 +4,14 @@ import com.tlu.thuvien.domain.entity.*;
 import com.tlu.thuvien.infrastructure.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cglib.core.Local;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +21,10 @@ public class BorrowService {
     private final BorrowTransactionRepository transactionRepository;
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
+
+    public List<BorrowTransaction> getAllTransactions() {
+        return transactionRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+    }
 
     //Tao yeu cau muon sach
     @Transactional
@@ -95,11 +101,11 @@ public class BorrowService {
         BorrowTransaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu mượn"));
 
-        if (transaction.getStatus().equals(BorrowStatus.PENDING.name())) {
+        if (transaction.getStatus() == BorrowStatus.PENDING) {
             throw new RuntimeException("Phiếu mượn chưa được duyệt, không thể trả!");
         }
 
-        if (!transaction.getStatus().equals(BorrowStatus.BORROWED.name())) {
+        if (transaction.getStatus() != BorrowStatus.BORROWED) {
             return "Phiếu mượn đã được trả hoặc bị hủy.";
         }
 
@@ -107,22 +113,24 @@ public class BorrowService {
         boolean isOverdue = false;
 
         for (BorrowDetail detail : transaction.getDetails()) {
-            detail.setReturnedDate(currentDate);
+            if (detail.getReturnedDate() == null) {
+                detail.setReturnedDate(currentDate);
 
-            Book book = detail.getBook();
-            book.setAvailableQuantity(book.getAvailableQuantity() + 1);
-            bookRepository.save(book);
+                Book book = detail.getBook();
+                book.setAvailableQuantity(book.getAvailableQuantity() + 1);
+                bookRepository.save(book);
+            }
 
             if (currentDate.isAfter(transaction.getDueDate())) {
                 isOverdue = true;
             }
         }
 
-        transaction.setStatus(BorrowStatus.valueOf(BorrowStatus.RETURNED.name()));
+        transaction.setStatus(BorrowStatus.RETURNED);
         transactionRepository.save(transaction);
 
         if (isOverdue) {
-            return "Trả sách thành công, nhưng bị trễ hạn (" + transaction.getDueDate() + "). Cần kiểm tra phí phạt!";
+            return "Trả sách thành công, nhưng bị trễ hạn (" + transaction.getDueDate() + ").";
         }
 
         return "Trả sách thành công!";
