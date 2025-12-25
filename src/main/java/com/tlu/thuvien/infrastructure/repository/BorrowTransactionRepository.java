@@ -14,4 +14,6 @@ public interface BorrowTransactionRepository extends JpaRepository<BorrowTransac
     long countByStatus(BorrowStatus status);
     List<BorrowTransaction> findByStatusAndDueDateBefore(BorrowStatus status, LocalDate date);
     List<BorrowTransaction> findByUserIdAndStatus(Long userId, BorrowStatus status);
+
+    List<BorrowTransaction> findByStatus(BorrowStatus status);
 }

@@ -5,18 +5,15 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.tlu.thuvien.application.service.BorrowService;
 import com.tlu.thuvien.domain.entity.BorrowTransaction;
+import com.tlu.thuvien.infrastructure.adapter.FileImageScannerAdapter;
 import com.tlu.thuvien.infrastructure.adapter.QRAdapter;
+import com.tlu.thuvien.infrastructure.adapter.QRScanner;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin/borrows")
@@ -29,24 +26,14 @@ public class AdminBorrowController {
     // --- TRANG 1: DUYỆT MƯỢN SÁCH (PENDING) ---
     @GetMapping("/pending")
     public String showApprovePage(Model model) {
-        List<BorrowTransaction> transactions = borrowService.getAllTransactions();
-        List<BorrowTransaction> pendingList = transactions.stream()
-                .filter(t -> "PENDING".equalsIgnoreCase(t.getStatus().name()))
-                .collect(Collectors.toList());
-
-        model.addAttribute("transactions", pendingList);
+        model.addAttribute("transactions", borrowService.getPendingTransactions());
         return "admin/borrow-approve";
     }
 
     // --- TRANG 2: TRẢ SÁCH (BORROWED) ---
     @GetMapping("/active")
     public String showReturnPage(Model model) {
-        List<BorrowTransaction> transactions = borrowService.getAllTransactions();
-        List<BorrowTransaction> activeList = transactions.stream()
-                .filter(t -> "BORROWED".equalsIgnoreCase(t.getStatus().name()))
-                .collect(Collectors.toList());
-
-        model.addAttribute("transactions", activeList);
+        model.addAttribute("transactions", borrowService.getBorrowedTransactions());
         return "admin/borrow-return";
     }
 
@@ -59,12 +46,9 @@ public class AdminBorrowController {
         }
 
         try {
-            BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
-            LuminanceSource source = new BufferedImageLuminanceSource(bufferedImage);
-            BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-            Result result = new MultiFormatReader().decode(bitmap);
+            QRScanner scanner = new FileImageScannerAdapter(file);
+            String rawQrData = scanner.scan();
 
-            String rawQrData = result.getText();
             Long userId = qrAdapter.parseUserId(rawQrData);
 
             BorrowTransaction transaction = borrowService.getPendingTransactionByUserId(userId);

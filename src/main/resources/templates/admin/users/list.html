@@ -31,7 +31,6 @@
                 <select name="role" class="form-control bg-light border-0 small mr-2">
                   <option value="">-- Tất cả vai trò --</option>
                   <option value="USER" th:selected="${selectedRole != null && selectedRole.name() == 'USER'}">USER</option>
-                  <option value="LIBRARIAN" th:selected="${selectedRole != null && selectedRole.name() == 'LIBRARIAN'}">LIBRARIAN</option>
                   <option value="ADMIN" th:selected="${selectedRole != null && selectedRole.name() == 'ADMIN'}">ADMIN</option>
                 </select>
 
@@ -70,7 +69,6 @@
 
                   <td>
                     <span th:if="${user.role.name() == 'ADMIN'}" class="badge badge-danger">ADMIN</span>
-                    <span th:if="${user.role.name() == 'LIBRARIAN'}" class="badge badge-info">LIBRARIAN</span>
                     <span th:if="${user.role.name() == 'USER'}" class="badge badge-primary">USER</span>
                   </td>
 

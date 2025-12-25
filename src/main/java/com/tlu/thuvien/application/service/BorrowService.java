@@ -150,9 +150,15 @@ public class BorrowService {
             book.setAvailableQuantity(book.getAvailableQuantity() + 1);
             bookRepository.save(book);
         }
-        //transaction.setStatus(BorrowStatus.REJECTED);
-        //transactionRepository.save(transaction);
 
         transactionRepository.delete(transaction);
+    }
+
+    public List<BorrowTransaction> getPendingTransactions() {
+        return transactionRepository.findByStatus(BorrowStatus.PENDING);
+    }
+
+    public List<BorrowTransaction> getBorrowedTransactions() {
+        return transactionRepository.findByStatus(BorrowStatus.BORROWED);
     }
 }
