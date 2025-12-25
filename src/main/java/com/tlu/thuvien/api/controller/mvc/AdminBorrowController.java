@@ -1,11 +1,7 @@
 package com.tlu.thuvien.api.controller.mvc;
 
-import com.google.zxing.*;
-import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
-import com.google.zxing.common.HybridBinarizer;
 import com.tlu.thuvien.application.service.BorrowService;
 import com.tlu.thuvien.domain.entity.BorrowTransaction;
-import com.tlu.thuvien.infrastructure.adapter.FileImageScannerAdapter;
 import com.tlu.thuvien.infrastructure.adapter.QRAdapter;
 import com.tlu.thuvien.infrastructure.adapter.QRScanner;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Map;
+
 @Controller
 @RequestMapping("/admin/borrows")
 @RequiredArgsConstructor
@@ -22,6 +20,7 @@ public class AdminBorrowController {
 
     private final BorrowService borrowService;
     private final QRAdapter qrAdapter;
+    private final Map<String, QRScanner> scanners;
 
     // --- TRANG 1: DUYỆT MƯỢN SÁCH (PENDING) ---
     @GetMapping("/pending")
@@ -38,35 +37,50 @@ public class AdminBorrowController {
     }
 
     // --- XỬ LÝ: DUYỆT BẰNG QR ---
-    @PostMapping("/approve-qr")
-    public String approveByQR(@RequestParam("qrImage") MultipartFile file, RedirectAttributes redirectAttributes) {
+    @PostMapping("/simulate-scan")
+    public String simulateScan(@RequestParam("qrImage") MultipartFile file,
+                               @RequestParam("deviceType") String deviceType, // Nhận vào: "scannerA" hoặc "scannerB"
+                               RedirectAttributes redirectAttributes) {
         if (file.isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng chọn ảnh QR!");
             return "redirect:/admin/borrows/pending";
         }
 
         try {
-            QRScanner scanner = new FileImageScannerAdapter(file);
-            String rawQrData = scanner.scan();
+            QRScanner selectedScanner = scanners.get(deviceType);
 
-            Long userId = qrAdapter.parseUserId(rawQrData);
+            if (selectedScanner == null) {
+                throw new RuntimeException("Thiết bị máy quét không tồn tại: " + deviceType);
+            }
+
+            String rawOutput = selectedScanner.scan(file);
+
+            Long userId = qrAdapter.parseUserId(rawOutput);
 
             BorrowTransaction transaction = borrowService.getPendingTransactionByUserId(userId);
 
             if (transaction != null) {
                 borrowService.approveBorrow(transaction.getId());
-                redirectAttributes.addFlashAttribute("successMessage",
-                        "Quét thành công! Đã duyệt phiếu #" + transaction.getId() + " cho User: " + transaction.getUser().getEmail());
+
+                String message = String.format(
+                        "<b>[%s]</b> Quét thành công!<br/>" +
+                                "- Raw Output: <code>%s</code><br/>" +
+                                "- Parsed ID: <b>%d</b><br/>" +
+                                "- Đã duyệt phiếu cho: %s",
+                        deviceType.toUpperCase(), rawOutput, userId, transaction.getUser().getEmail()
+                );
+                redirectAttributes.addFlashAttribute("successMessage", message);
             } else {
                 redirectAttributes.addFlashAttribute("errorMessage",
-                        "Không tìm thấy yêu cầu mượn mới nào cho User ID: " + userId);
+                        "[" + deviceType + "] Đọc được User ID " + userId + " nhưng không có phiếu chờ.");
             }
 
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi xử lý QR: " + e.getMessage());
+            // e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi xử lý: " + e.getMessage());
         }
 
-        return "redirect:/admin/borrows/pending"; // Quay lại trang duyệt
+        return "redirect:/admin/borrows/pending";
     }
 
     @PostMapping("/reject/{id}")

@@ -29,8 +29,7 @@ public class UserController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String qrContent = "USER:" + user.getId() + ";DATA=thuvien_secure";
-        // String qrContent = "ID#" + user.getId();
+        String qrContent = String.valueOf(user.getId());
 
         Map<String, String> result = new HashMap<>();
         result.put("qrContent", qrContent);
