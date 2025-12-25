@@ -35,7 +35,14 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String jwt = tokenProvider.generateToken(authentication);
-        return new AuthResponse(jwt);
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng!"));
+
+        AuthResponse response = new AuthResponse(jwt);
+
+        response.setRole(user.getRole().name());
+        return response;
     }
 
     @Transactional

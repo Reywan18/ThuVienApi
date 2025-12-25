@@ -26,9 +26,20 @@
     </li>
 
     <li class="nav-item">
-        <a class="nav-link" th:href="@{/admin/borrows}">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseBorrowReturn">
             <i class="fas fa-fw fa-exchange-alt"></i> <span>Quản lý Mượn/Trả</span>
         </a>
+        <div id="collapseBorrowReturn" class="collapse" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Chức năng:</h6>
+                <a class="collapse-item" th:href="@{/admin/borrows/pending}">
+                    <i class="fas fa-check-circle mr-1"></i> Duyệt mượn sách
+                </a>
+                <a class="collapse-item" th:href="@{/admin/borrows/active}">
+                    <i class="fas fa-undo mr-1"></i> Trả sách
+                </a>
+            </div>
+        </div>
     </li>
 
     <li class="nav-item">

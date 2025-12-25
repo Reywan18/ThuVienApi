@@ -135,4 +135,24 @@ public class BorrowService {
 
         return "Trả sách thành công!";
     }
+
+    @Transactional
+    public void rejectBorrow(Long transactionId) {
+        BorrowTransaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu mượn"));
+
+        if (transaction.getStatus() != BorrowStatus.PENDING) {
+            throw new RuntimeException("Chỉ được hủy các phiếu đang chờ duyệt!");
+        }
+
+        for (BorrowDetail detail : transaction.getDetails()) {
+            Book book = detail.getBook();
+            book.setAvailableQuantity(book.getAvailableQuantity() + 1);
+            bookRepository.save(book);
+        }
+        //transaction.setStatus(BorrowStatus.REJECTED);
+        //transactionRepository.save(transaction);
+
+        transactionRepository.delete(transaction);
+    }
 }

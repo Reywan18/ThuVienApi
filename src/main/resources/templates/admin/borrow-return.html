@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <title>Trả Sách - Admin</title>
+  <link href="https://startbootstrap.github.io/startbootstrap-sb-admin-2/css/sb-admin-2.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body id="page-top">
+<div id="wrapper">
+  <ul th:replace="admin/sidebar :: sidebar"></ul>
+  <div id="content-wrapper" class="d-flex flex-column">
+    <div id="content">
+      <nav th:replace="admin/topbar :: topbar"></nav>
+
+      <div class="container-fluid">
+
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show">
+          <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show">
+          <i class="fas fa-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+
+        <div class="card shadow mb-4">
+          <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Sách Đang Được Mượn (Active)</h6>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-bordered" width="100%" cellspacing="0">
+                <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Người mượn</th>
+                  <th>Sách</th>
+                  <th>Ngày mượn</th>
+                  <th>Ngày hẹn trả</th>
+                  <th>Trạng thái</th>
+                  <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${transactions}">
+                  <td th:text="${'#' + t.id}"></td>
+                  <td th:text="${t.user.email}"></td>
+                  <td>
+                    <ul style="margin-bottom:0; padding-left:15px;">
+                      <li th:each="d : ${t.details}" th:text="${d.book.title}"></li>
+                    </ul>
+                  </td>
+                  <td th:text="${t.borrowDate}"></td>
+                  <td th:text="${t.dueDate}"></td>
+                  <td><span class="badge badge-primary">Đang mượn</span></td>
+                  <td>
+                    <form th:action="@{/admin/borrows/return/{id}(id=${t.id})}" method="post" onsubmit="return confirm('Xác nhận đã nhận lại đủ sách?');">
+                      <button type="submit" class="btn btn-primary btn-sm btn-icon-split">
+                        <span class="icon text-white-50"><i class="fas fa-undo"></i></span>
+                        <span class="text">Nhận Sách</span>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(transactions)}">
+                  <td colspan="7" class="text-center">Hiện không có ai đang mượn sách.</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
